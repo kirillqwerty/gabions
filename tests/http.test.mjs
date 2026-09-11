@@ -28,9 +28,11 @@ test('Canonical directory redirects preserve attribution query',async()=>{
 });
 test('Contact helper cannot submit personal data through a default GET when JavaScript is disabled',async()=>{
   const html=await (await fetch(base+'/kontakty/')).text();
-  assert.match(html,/<form[^>]*data-request-form[^>]*hidden/);assert.match(html,/<noscript>[\s\S]*tel:\+375333790909/);
+  assert.match(html,/<form[^>]*data-request-form[^>]*hidden/);assert.match(html,/<noscript\b[\s\S]*tel:\+375298690231/);
   const js=await (await fetch(base+'/assets/js/main.js')).text();
-  assert.match(js,/event\.preventDefault\(\)/);assert.doesNotMatch(js,/localStorage|sessionStorage|generate_lead/);
+  assert.match(js,/event\.preventDefault\(\)/);assert.match(html,/method="post"/);
+  assert.match(js,/localStorage\.setItem\('gabions-theme', theme\)/);
+  assert.doesNotMatch(js,/localStorage\.setItem\([^\n]*(?:phone|payload|serialized)/);
 });
 test('Robots and sitemap are served with appropriate content types',async()=>{
   const robots=await fetch(base+'/robots.txt');assert.equal(robots.status,200);assert.match(robots.headers.get('content-type'),/text\/plain/);

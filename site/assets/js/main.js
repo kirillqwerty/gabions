@@ -1,5 +1,32 @@
 /* Progressive enhancement only. All pages, navigation and content are plain HTML. */
 document.documentElement.classList.add('js');
+const themeButton = document.querySelector('[data-theme-toggle]');
+function applyTheme(theme, animate = false) {
+  const root = document.documentElement;
+  root.dataset.theme = theme;
+  if (themeButton) {
+    themeButton.setAttribute('aria-pressed', String(theme === 'dark'));
+    themeButton.setAttribute('aria-label', theme === 'dark' ? 'Включить светлую тему' : 'Включить тёмную тему');
+    themeButton.querySelector('[data-theme-label]').textContent = theme === 'dark' ? 'Светлая' : 'Тёмная';
+  }
+  if (animate) {
+    root.classList.remove('stones-switching');
+    void root.offsetWidth;
+    root.classList.add('stones-switching');
+    setTimeout(() => root.classList.remove('stones-switching'), 1200);
+  }
+}
+applyTheme(document.documentElement.dataset.theme || 'light');
+themeButton?.addEventListener('click', () => {
+  const theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  applyTheme(theme, true);
+  try { localStorage.setItem('gabions-theme', theme); } catch {}
+});
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+  let saved;
+  try { saved = localStorage.getItem('gabions-theme'); } catch {}
+  if (!['dark', 'light'].includes(saved)) applyTheme(event.matches ? 'dark' : 'light');
+});
 const menuButton = document.querySelector('[data-menu-toggle]');
 const menu = document.querySelector('[data-menu]');
 menuButton?.addEventListener('click', () => {
@@ -48,8 +75,10 @@ if(requestForm){
   const requested=new URLSearchParams(location.search).get('tema');
   const select=requestForm.elements.subject;
   if(requested && [...select.options].some(option=>option.value===requested)) select.value=requested;
-  requestForm.addEventListener('submit',event=>{
+  let pending = false, requestId, lastPayload;
+  requestForm.addEventListener('submit',async event=>{
     event.preventDefault();
+    if(pending || !requestForm.reportValidity()) return;
     const phone=requestForm.elements.phone.value.trim();
     const status=requestForm.querySelector('[data-form-status]');
     if(phone.replace(/\D/g,'').length<7 || phone.replace(/\D/g,'').length>15){
@@ -57,14 +86,41 @@ if(requestForm){
       status.classList.add('error');requestForm.elements.phone.focus();
       track('form_error',{page:location.pathname,form:'request',code:'phone_invalid'});return;
     }
-    const text=[`Здравствуйте! Интересует: ${select.value}.`,requestForm.elements.name.value.trim() ? `Имя: ${requestForm.elements.name.value.trim()}`:'',`Телефон: ${phone}`,requestForm.elements.city.value.trim()?`Населённый пункт: ${requestForm.elements.city.value.trim()}`:'',requestForm.elements.message.value.trim()].filter(Boolean).join('\n');
-    const link=requestForm.querySelector('[data-message-link]');
-    link.href='https://api.whatsapp.com/send?phone=375298690231&text='+encodeURIComponent(text);
-    link.hidden=false;
+    const payload = Object.fromEntries(['subject', 'name', 'phone', 'city', 'message', 'website'].map(key => [key, requestForm.elements[key].value.trim()]));
+    payload.consent = requestForm.elements.consent.checked;
+    const serialized = JSON.stringify(payload);
+    if (!requestId || lastPayload !== serialized) requestId = crypto.randomUUID();
+    lastPayload = serialized;
+    const submit = requestForm.querySelector('[type="submit"]');
+    pending = true;
+    submit.disabled = true;
+    submit.textContent = 'Отправляем…';
+    requestForm.setAttribute('aria-busy', 'true');
     status.classList.remove('error');
-    status.textContent='Сообщение подготовлено. Откройте WhatsApp и отправьте его менеджеру. Сайт ещё не отправил заявку.';
-    link.focus();
-    track('message_prepared',{page:location.pathname,form:'request'});
+    status.textContent = 'Отправляем вашу заявку…';
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 45000);
+    try {
+      const endpoint = new URL(window.GABIONS_CONFIG?.requestEndpoint || '/api/request', location.origin);
+      if (endpoint.protocol !== 'https:' && !['localhost', '127.0.0.1'].includes(endpoint.hostname)) throw new Error('Отправка временно недоступна. Свяжитесь с нами по телефону или почте.');
+      const response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': requestId }, body: serialized, signal: controller.signal, credentials: 'omit' });
+      const result = await response.json().catch(() => null);
+      if (!response.ok || result?.ok !== true) throw new Error(result?.error || 'Не удалось отправить заявку. Позвоните +375 (29) 869-02-31 или напишите gabions.by@gmail.com.');
+      status.textContent = 'Спасибо! Ваша заявка принята. Мы свяжемся с вами по указанному телефону.';
+      requestForm.reset();
+      requestId = undefined; lastPayload = undefined; started = false;
+      track('request_sent', { page: location.pathname, form: 'request' });
+    } catch(error) {
+      status.classList.add('error');
+      status.textContent = error.name === 'AbortError' ? 'Не получили подтверждение отправки. Проверьте соединение и повторите попытку или позвоните нам.' : error instanceof TypeError ? 'Нет связи с сервисом отправки. Попробуйте позже или напишите gabions.by@gmail.com.' : error.message;
+      track('form_error', { page: location.pathname, form: 'request', code: 'delivery_failed' });
+    } finally {
+      clearTimeout(timeout);
+      pending = false; submit.disabled = false;
+      submit.textContent = 'Отправить заявку ↗';
+      requestForm.removeAttribute('aria-busy');
+      status.focus();
+    }
   });
   requestForm.hidden=false;
 }

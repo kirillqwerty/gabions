@@ -1,4 +1,7 @@
-"""Initial authoring utility. Writes real, editable HTML files; not used by the build or browser."""
+"""Historical initial authoring utility, before the September 2026 redesign.
+Do not run against the current site: edit site/*.html directly. This utility
+is not used by npm run build and would overwrite the current forms and themes.
+"""
 from pathlib import Path
 import html, json, shutil
 import re

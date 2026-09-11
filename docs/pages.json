@@ -1,13 +1,13 @@
 [
   {
     "url": "/",
-    "title": "Габионы в Минске и Беларуси — материалы и монтаж | Gabions",
+    "title": "Габионы в Беларуси — материалы и монтаж | Gabions",
     "index": true,
     "file": "index.html"
   },
   {
     "url": "/gabiony/",
-    "title": "Купить габионы в Минске — конструкции и материалы | Gabions",
+    "title": "Купить габионы в Беларуси — конструкции и материалы | Gabions",
     "index": true,
     "file": "gabiony\\index.html"
   },
@@ -79,7 +79,7 @@
   },
   {
     "url": "/kontakty/",
-    "title": "Контакты Gabions — габионы в Минске и Беларуси",
+    "title": "Контакты Gabions — габионы в Беларуси",
     "index": true,
     "file": "kontakty\\index.html"
   },

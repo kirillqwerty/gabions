@@ -42,6 +42,7 @@ for(const [file,text] of texts){
   assert(!/\b(?:TODO|PLACEHOLDER|Lorem ipsum)\b/.test(text),prefix+'placeholder');
 }
 const js=await readFile(path.join(root,'assets/js/main.js'),'utf8').catch(async()=>{const p=files.find(p=>/main\.[a-f\d]+\.js$/.test(p));return p?readFile(p,'utf8'):'';});
-assert(!/innerHTML|document\.write|createElement|fetch\(/.test(js),'No client-side page rendering or unconfigured form transmission');
+assert(!/innerHTML|document\.write/.test(js),'No client-side page rendering');
+assert(/GABIONS_CONFIG/.test(js) && /credentials: 'omit'/.test(js),'Form uses a configured endpoint without cookies');
 console.log(JSON.stringify({pages:pages.length,internalLinks,images,schemas,failures},null,2));
 if(failures.length)process.exitCode=1;

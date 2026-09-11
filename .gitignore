@@ -3,3 +3,7 @@ node_modules/
 *.log
 *.tar.gz
 site-release/
+.env
+.env.*
+!.env.example
+.qa/
