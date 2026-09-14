@@ -1,4 +1,5 @@
 import { cp, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 const source = path.resolve('site');
 const out = path.resolve('dist');
@@ -14,11 +15,14 @@ if (endpoint !== '/api/request') {
   const endpointUrl = new URL(endpoint);
   if (endpointUrl.protocol !== 'https:' || endpointUrl.username || endpointUrl.password || endpointUrl.search || endpointUrl.hash) throw new Error('REQUEST_ENDPOINT must be a public HTTPS URL without credentials, query or fragment');
 }
+const mainJs = await readFile(path.join(source, 'assets/js/main.js'));
+const mainJsVersion = createHash('sha256').update(mainJs).digest('hex').slice(0, 12);
 async function walk(dir){let a=[];for(const e of await readdir(dir,{withFileTypes:true})){const p=path.join(dir,e.name);a.push(...(e.isDirectory()?await walk(p):[p]));}return a;}
 for(const file of await walk(out)) if(/\.(html|xml|txt)$/.test(file)) {
   const text=await readFile(file,'utf8');
   let output=text.replaceAll('https://gabions.by',origin + basePrefix);
   if(basePrefix) output=output.replace(/\b(href|src)="\/(?!\/)([^"]*)"/g,(_,attribute,value)=>`${attribute}="${basePrefix}/${value}"`);
+  if (file.endsWith('.html')) output=output.replace(/(assets\/js\/main\.js)(?:\?v=[a-f\d]+)?"/g, `$1?v=${mainJsVersion}"`);
   await writeFile(file,output);
 }
 await writeFile(path.join(out, 'assets/js/config.js'), `/* Public endpoint only. No SMTP secrets. */\nwindow.GABIONS_CONFIG = Object.freeze(${JSON.stringify({ requestEndpoint: endpoint })});\n`);

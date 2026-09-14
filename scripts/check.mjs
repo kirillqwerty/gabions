@@ -44,5 +44,6 @@ for(const [file,text] of texts){
 const js=await readFile(path.join(root,'assets/js/main.js'),'utf8').catch(async()=>{const p=files.find(p=>/main\.[a-f\d]+\.js$/.test(p));return p?readFile(p,'utf8'):'';});
 assert(!/innerHTML|document\.write/.test(js),'No client-side page rendering');
 assert(/GABIONS_CONFIG/.test(js) && /credentials: 'omit'/.test(js),'Form uses a configured endpoint without cookies');
+if(process.env.CHECK_DIST) for(const [file,text] of texts) assert(/assets\/js\/main\.js\?v=[a-f\d]{12}"/.test(text),path.relative(root,file)+': versioned main script');
 console.log(JSON.stringify({pages:pages.length,internalLinks,images,schemas,failures},null,2));
 if(failures.length)process.exitCode=1;
