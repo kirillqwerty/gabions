@@ -62,7 +62,7 @@ calc?.querySelector('[data-calc-submit]')?.removeAttribute('hidden');
 calc?.addEventListener('submit', event => {
   event.preventDefault();
   const result=calc.querySelector('[data-result]');
-  const values=['length','height','depth'].map(name=>Number(calc.elements[name].value.trim().replace(',','.')));
+  const values=['length','height','depth'].map(name=>Number(calc.elements.namedItem(name).value.trim().replace(',','.')));
   if (values.some(n=>!Number.isFinite(n)||n<=0||n>1000)) {result.textContent='Укажите размеры больше нуля в метрах. Например: 10; 1,5; 0,3.';return;}
   const volume=values.reduce((a,b)=>a*b,1);
   result.textContent=`Геометрический объём: ${new Intl.NumberFormat('ru-BY',{maximumFractionDigits:3}).format(volume)} м³. Это объём конструкции, а не масса камня или расчёт устойчивости.`;
