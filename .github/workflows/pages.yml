@@ -41,15 +41,26 @@ jobs:
       - name: Run tests
         run: npm test
 
+      - name: Configure GitHub Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
       - name: Build for GitHub Pages
+        # Use the actual Pages URL, including a custom domain when configured.
         run: npm run build
         env:
-          SITE_ORIGIN: https://kirillqwerty.github.io
-          SITE_BASE_PATH: gabions
+          SITE_ORIGIN: ${{ steps.pages.outputs.origin }}
+          SITE_BASE_PATH: ${{ steps.pages.outputs.base_path }}
           REQUEST_ENDPOINT: ${{ vars.REQUEST_ENDPOINT }}
+          GOOGLE_SITE_VERIFICATION: ${{ vars.GOOGLE_SITE_VERIFICATION }}
+          YANDEX_SITE_VERIFICATION: ${{ vars.YANDEX_SITE_VERIFICATION }}
 
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
+      - name: Validate deployed URLs and SEO
+        run: npm run check
+        env:
+          CHECK_DIST: '1'
+          SITE_ORIGIN: ${{ steps.pages.outputs.origin }}
+          SITE_BASE_PATH: ${{ steps.pages.outputs.base_path }}
 
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v4

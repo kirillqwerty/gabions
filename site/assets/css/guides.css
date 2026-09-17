@@ -1,0 +1,18 @@
+/* Reading layouts use the site's light/dark palette. */
+.guide-copy{max-width:940px}
+.guide-copy>p,.guide-article p{line-height:1.85;max-width:76ch;margin-block:16px}
+.guide-copy>h3{margin-top:36px}
+.guide-copy>h2{max-width:760px}
+.guide-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin-block:30px}
+.guide-cards>a{display:block;padding:26px;border:1px solid var(--line);background:var(--paper);text-decoration:none;color:var(--ink);border-radius:8px}
+.guide-cards>a:hover{border-color:var(--green)}
+.guide-cards h3{font-size:1.35rem;line-height:1.25;margin:0 0 15px}
+.guide-cards p{color:var(--muted);font-size:.92rem;line-height:1.65;margin:0}
+.guide-related{display:flex;flex-wrap:wrap;gap:12px 24px;border-top:1px solid var(--line);padding-top:25px;margin-top:45px;font-size:.9rem}
+.guide-article section{scroll-margin-top:110px}
+.guide-article .toc h2{font-size:1.1rem;margin-bottom:15px}
+.side-panel h2{font-size:1.65rem;margin-bottom:16px}
+.footer-guides{display:flex;flex-wrap:wrap;gap:12px 28px;margin-top:35px;border-top:1px solid #48625466;padding-top:25px}
+.footer-guides a{margin:0}
+@media(max-width:900px){.guide-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:540px){.guide-cards{grid-template-columns:1fr}.guide-cards>a{padding:22px}.guide-copy>h3{margin-top:28px}}

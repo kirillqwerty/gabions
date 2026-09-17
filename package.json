@@ -4,6 +4,7 @@
   "private": true,
   "description": "Explicit HTML pages, vanilla CSS and JavaScript. No client-side rendering.",
   "scripts": {
+    "content": "node scripts/content.mjs",
     "dev": "node scripts/serve.mjs",
     "build": "node scripts/build.mjs",
     "check": "node scripts/check.mjs",
